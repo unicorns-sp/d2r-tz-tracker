@@ -1,0 +1,4 @@
+[[redirects]]
+  from = "/api/tz"
+  to = "/.netlify/functions/tz-proxy"
+  status = 200
