@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#0a0608">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="D2R TZ Tracker">
+<title>D2R Terror Zone Tracker</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700&family=Crimson+Text:ital,wght@0,400;0,600;1,400&display=swap');
+:root {
+  --gold:#c8a84b;--gold-light:#e8c96a;--red:#8b1a1a;--red-bright:#cc2200;
+  --dark:#0a0608;--panel:#110d0f;--panel2:#1a1218;--border:#3a2a1a;
+  --text:#d4b896;--text-dim:#8a7060;
+  --ic:#5bc8f5;--if:#f55b2a;--il:#f5d22a;--im:#c07af5;--ip:#6af536;--iph:#c8a87a;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{background:var(--dark);color:var(--text);font-family:'Crimson Text',Georgia,serif;font-size:17px;
+  min-height:100vh;overscroll-behavior:none;
+  background-image:radial-gradient(ellipse at 50% 0%,rgba(139,26,26,.18) 0%,transparent 60%);
+  padding-top:env(safe-area-inset-top);padding-bottom:env(safe-area-inset-bottom);}
+
+/* HEADER */
+header{position:sticky;top:0;z-index:200;background:rgba(10,6,8,.96);backdrop-filter:blur(10px);
+  border-bottom:1px solid var(--border);padding:12px 14px;
+  display:flex;align-items:center;gap:10px;}
+.header-skull{font-size:1.4rem;}
+.header-text{flex:1;}
+.header-text h1{font-family:'Cinzel',serif;font-size:1rem;font-weight:700;color:var(--gold);letter-spacing:.1em;}
+.header-text .sub{font-size:.72rem;color:var(--text-dim);letter-spacing:.04em;}
+.hbtn{background:transparent;border:1px solid var(--border);color:var(--text-dim);
+  font-size:1.2rem;width:38px;height:38px;border-radius:8px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:all .2s;flex-shrink:0;}
+.hbtn.on{border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,.1);}
+
+/* MAIN */
+main{padding:12px 12px 76px;max-width:540px;margin:0 auto;}
+
+/* TIMER */
+.timer-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:12px 14px;margin-bottom:12px;display:flex;align-items:center;gap:12px;}
+.timer-texts{flex-shrink:0;}
+.tlabel{font-size:.68rem;color:var(--text-dim);letter-spacing:.08em;text-transform:uppercase;}
+.tval{font-family:'Cinzel',serif;font-size:1.35rem;color:var(--gold);font-weight:600;line-height:1.1;}
+.prog-wrap{flex:1;background:#1e1418;border-radius:4px;height:6px;overflow:hidden;}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--red),var(--gold));border-radius:4px;transition:width 1s linear;}
+
+/* FILTER */
+.filter-row{display:flex;gap:6px;overflow-x:auto;padding-bottom:2px;margin-bottom:12px;scrollbar-width:none;}
+.filter-row::-webkit-scrollbar{display:none;}
+.act-btn{flex-shrink:0;font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.07em;
+  padding:6px 12px;border-radius:20px;border:1px solid var(--border);
+  background:var(--panel2);color:var(--text-dim);cursor:pointer;transition:all .18s;white-space:nowrap;}
+.act-btn.active{border-color:var(--gold);color:var(--gold);background:rgba(200,168,75,.1);}
+
+/* ZONE CARDS */
+.zone-card{background:var(--panel);border:1px solid var(--border);border-radius:10px;
+  padding:16px 16px 14px;margin-bottom:10px;position:relative;overflow:hidden;transition:opacity .3s;}
+.zone-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;}
+.zone-card.current::before{background:linear-gradient(90deg,transparent,var(--red-bright),transparent);}
+.zone-card.next::before{background:linear-gradient(90deg,transparent,var(--gold),transparent);}
+.zone-card.filtered{opacity:.3;}
+.card-label{font-family:'Cinzel',serif;font-size:.65rem;letter-spacing:.18em;color:var(--text-dim);text-transform:uppercase;margin-bottom:5px;}
+.zone-card.current .card-label{color:#cc6644;}
+.zone-card.next .card-label{color:var(--gold);}
+.zone-name-row{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:2px;}
+.zone-name{font-family:'Cinzel',serif;font-size:1.28rem;font-weight:600;color:#f0dfc0;line-height:1.2;}
+.act-badge{font-family:'Cinzel',serif;font-size:.65rem;padding:2px 8px;border-radius:3px;
+  background:rgba(200,168,75,.12);color:var(--gold);border:1px solid rgba(200,168,75,.25);white-space:nowrap;flex-shrink:0;}
+.notify-zone-btn{background:transparent;border:1px solid var(--border);border-radius:6px;
+  font-size:.85rem;padding:4px 8px;cursor:pointer;transition:all .2s;flex-shrink:0;color:var(--text-dim);}
+.notify-zone-btn.watching{border-color:#f5d22a;color:#f5d22a;background:rgba(245,210,42,.1);}
+.notify-zone-btn.watching::after{content:' ON';}
+.imm-row{display:flex;flex-wrap:wrap;gap:5px;align-items:center;margin-top:10px;}
+.imm-l{font-size:.73rem;color:var(--text-dim);margin-right:2px;}
+.it{font-size:.7rem;font-weight:600;padding:3px 8px;border-radius:3px;letter-spacing:.03em;font-family:'Cinzel',serif;}
+.ic{background:rgba(91,200,245,.15);color:var(--ic);border:1px solid rgba(91,200,245,.35);}
+.if{background:rgba(245,91,42,.15);color:var(--if);border:1px solid rgba(245,91,42,.35);}
+.il{background:rgba(245,210,42,.15);color:var(--il);border:1px solid rgba(245,210,42,.35);}
+.im{background:rgba(192,122,245,.15);color:var(--im);border:1px solid rgba(192,122,245,.35);}
+.ip{background:rgba(106,245,54,.15);color:var(--ip);border:1px solid rgba(106,245,54,.35);}
+.iph{background:rgba(200,168,122,.15);color:var(--iph);border:1px solid rgba(200,168,122,.35);}
+.no-imm{font-size:.78rem;color:var(--text-dim);font-style:italic;}
+
+/* NOTIFY DRAWER */
+.drawer-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:300;backdrop-filter:blur(2px);}
+.drawer-overlay.open{display:block;}
+.drawer{position:fixed;bottom:0;left:0;right:0;z-index:400;background:var(--panel);
+  border-top:1px solid var(--border);border-radius:16px 16px 0 0;
+  padding:0 0 env(safe-area-inset-bottom,12px);max-height:85vh;
+  display:flex;flex-direction:column;
+  transform:translateY(100%);transition:transform .3s cubic-bezier(.4,0,.2,1);}
+.drawer.open{transform:translateY(0);}
+.drawer-handle{width:36px;height:4px;background:var(--border);border-radius:2px;margin:12px auto 8px;}
+.drawer-header{padding:4px 16px 12px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:10px;}
+.drawer-header h2{font-family:'Cinzel',serif;font-size:.9rem;color:var(--gold);letter-spacing:.1em;flex:1;}
+.drawer-close{background:transparent;border:none;color:var(--text-dim);font-size:1.3rem;cursor:pointer;padding:4px;}
+
+.drawer-body{overflow-y:auto;padding:14px 14px 20px;flex:1;}
+
+/* Search */
+.zone-search{width:100%;background:var(--panel2);border:1px solid var(--border);
+  color:var(--text);font-family:'Crimson Text',serif;font-size:1rem;
+  padding:9px 12px;border-radius:8px;margin-bottom:12px;outline:none;}
+.zone-search::placeholder{color:var(--text-dim);}
+.zone-search:focus{border-color:var(--gold);}
+
+/* Act sections */
+.act-section{margin-bottom:14px;}
+.act-section-title{font-family:'Cinzel',serif;font-size:.72rem;letter-spacing:.12em;
+  color:var(--text-dim);text-transform:uppercase;padding:6px 0 8px;
+  border-bottom:1px solid var(--border);margin-bottom:8px;
+  display:flex;align-items:center;justify-content:space-between;}
+.act-section-title .act-sel-all{font-size:.65rem;color:var(--gold);cursor:pointer;letter-spacing:.08em;}
+
+.zone-list{display:flex;flex-direction:column;gap:6px;}
+.zone-item{display:flex;align-items:center;justify-content:space-between;gap:10px;
+  background:var(--panel2);border:1px solid var(--border);border-radius:8px;
+  padding:9px 12px;cursor:pointer;transition:all .18s;}
+.zone-item:active{background:#221820;}
+.zone-item.watching{border-color:rgba(245,210,42,.4);background:rgba(245,210,42,.05);}
+.zi-name{font-family:'Cinzel',serif;font-size:.82rem;color:var(--text);flex:1;}
+.zone-item.watching .zi-name{color:#f0dfc0;}
+.zi-bell{font-size:1rem;flex-shrink:0;opacity:.35;transition:opacity .2s;}
+.zone-item.watching .zi-bell{opacity:1;}
+
+/* Summary bar */
+.watch-summary{background:rgba(200,168,75,.08);border:1px solid rgba(200,168,75,.2);
+  border-radius:8px;padding:10px 14px;margin-bottom:14px;
+  display:flex;align-items:center;justify-content:space-between;gap:10px;}
+.ws-text{font-size:.82rem;color:var(--gold);}
+.ws-clear{font-size:.72rem;font-family:'Cinzel',serif;color:var(--text-dim);
+  background:transparent;border:1px solid var(--border);border-radius:4px;
+  padding:4px 10px;cursor:pointer;}
+
+/* Status bar */
+.status-bar{position:fixed;bottom:env(safe-area-inset-bottom,0);left:0;right:0;
+  background:rgba(10,6,8,.96);backdrop-filter:blur(10px);border-top:1px solid var(--border);
+  padding:10px 14px;display:flex;align-items:center;justify-content:space-between;}
+.status-left{display:flex;align-items:center;gap:8px;}
+.dot{width:8px;height:8px;border-radius:50%;background:#2a2a2a;transition:all .4s;}
+.dot.live{background:#44cc44;box-shadow:0 0 8px #44cc44;animation:pulse 2s infinite;}
+.dot.loading{background:var(--gold);box-shadow:0 0 8px var(--gold);}
+.dot.error{background:var(--red-bright);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.45;}}
+.status-txt{font-size:.76rem;color:var(--text-dim);}
+.refresh-btn{background:transparent;border:1px solid var(--border);color:var(--gold);
+  font-family:'Cinzel',serif;font-size:.7rem;letter-spacing:.08em;
+  padding:6px 12px;border-radius:5px;cursor:pointer;transition:all .2s;}
+.refresh-btn:active{background:rgba(200,168,75,.15);}
+
+/* Install banner */
+#install-banner{background:linear-gradient(135deg,#1a1218,#221820);border:1px solid var(--gold);
+  border-radius:10px;padding:12px 14px;margin-bottom:12px;display:none;align-items:center;gap:10px;}
+.ib-text{flex:1;}
+.ib-title{font-family:'Cinzel',serif;font-size:.82rem;color:var(--gold);margin-bottom:2px;}
+.ib-sub{font-size:.75rem;color:var(--text-dim);}
+#install-banner .ib-install{background:var(--gold);color:#0a0608;font-family:'Cinzel',serif;
+  font-size:.72rem;font-weight:700;padding:7px 12px;border:none;border-radius:6px;cursor:pointer;flex-shrink:0;}
+.ib-dismiss{background:transparent !important;color:var(--text-dim);font-size:1.1rem;border:none;cursor:pointer;flex-shrink:0;}
+
+/* Skeleton */
+.sk{background:linear-gradient(90deg,#1a1218 25%,#221820 50%,#1a1218 75%);background-size:200% 100%;
+  animation:shimmer 1.4s infinite;border-radius:4px;margin-bottom:8px;}
+@keyframes shimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.sk.n{width:60%;height:26px;}.sk.a{width:30%;height:13px;}.sk.i{width:72%;height:13px;}
+
+.attribution{text-align:center;font-size:.73rem;color:var(--text-dim);margin-top:8px;}
+.attribution a{color:var(--gold);text-decoration:none;}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="header-skull">💀</div>
+  <div class="header-text">
+    <h1>TERROR ZONE TRACKER</h1>
+    <div class="sub">D2R · Online · Rotates every 30 min</div>
+  </div>
+  <button class="hbtn" id="notif-btn" onclick="openDrawer()" title="Zone Notifications">🔔</button>
+</header>
+
+<main>
+  <div id="install-banner">
+    <div class="ib-text">
+      <div class="ib-title">📲 Install as Android App</div>
+      <div class="ib-sub">Add to home screen for notifications</div>
+    </div>
+    <button class="ib-install" onclick="installPWA()">INSTALL</button>
+    <button class="ib-dismiss" onclick="dismissInstall()">✕</button>
+  </div>
+
+  <div class="timer-card">
+    <div class="timer-texts">
+      <div class="tlabel">Next Rotation</div>
+      <div class="tval" id="countdown">--:--</div>
+    </div>
+    <div class="prog-wrap"><div class="prog-fill" id="prog" style="width:0%"></div></div>
+  </div>
+
+  <div class="filter-row">
+    <button class="act-btn active" onclick="setFilter('All',this)">All Acts</button>
+    <button class="act-btn" onclick="setFilter('Act I',this)">Act I</button>
+    <button class="act-btn" onclick="setFilter('Act II',this)">Act II</button>
+    <button class="act-btn" onclick="setFilter('Act III',this)">Act III</button>
+    <button class="act-btn" onclick="setFilter('Act IV',this)">Act IV</button>
+    <button class="act-btn" onclick="setFilter('Act V',this)">Act V</button>
+  </div>
+
+  <div class="zone-card current" id="card-current">
+    <div class="card-label">⚡ Current Terror Zone</div>
+    <div class="sk n"></div><div class="sk a"></div><div class="sk i"></div>
+  </div>
+  <div class="zone-card next" id="card-next">
+    <div class="card-label">🔮 Next Terror Zone</div>
+    <div class="sk n"></div><div class="sk a"></div><div class="sk i"></div>
+  </div>
+
+  <div class="attribution">Data from <a href="https://d2emu.com/tz" target="_blank">d2emu.com</a></div>
+</main>
+
+<!-- Notification Drawer -->
+<div class="drawer-overlay" id="overlay" onclick="closeDrawer()"></div>
+<div class="drawer" id="drawer">
+  <div class="drawer-handle"></div>
+  <div class="drawer-header">
+    <h2>🔔 ZONE NOTIFICATIONS</h2>
+    <button class="drawer-close" onclick="closeDrawer()">✕</button>
+  </div>
+  <div class="drawer-body" id="drawer-body">
+    <!-- populated by JS -->
+  </div>
+</div>
+
+<div class="status-bar">
+  <div class="status-left">
+    <div class="dot loading" id="dot"></div>
+    <div class="status-txt" id="stxt">Fetching…</div>
+  </div>
+  <button class="refresh-btn" onclick="fetchData()">↺ REFRESH</button>
+</div>
+
+<script>
+// ── ALL TERROR ZONES ──
+const ALL_ZONES = {
+  'Act I':  ['Blood Moor & Den of Evil','Cold Plains & Cave','Stony Field','Underground Passage & Dark Wood',
+             'Black Marsh & Hole','Tamoe Highland & Pit','Cathedral & Catacombs','Tristram','Moo Moo Farm'],
+  'Act II': ['Rocky Waste & Stony Tomb','Dry Hills & Halls of the Dead','Far Oasis','Lost City & Valley of Snakes',
+             'Arcane Sanctuary','Canyon of the Magi & Tal Rasha\'s Tombs'],
+  'Act III':['Spider Forest & Arachnid Lair','Flayer Jungle & Flayer Dungeon','Lower Kurast & Kurast Bazaar',
+             'Upper Kurast & Sewers','Travincal','Durance of Hate'],
+  'Act IV': ['Outer Steppes & Plains of Despair','City of the Damned & River of Flame','Chaos Sanctuary'],
+  'Act V':  ['Bloody Foothills & Eldritch & Shenk','Frigid Highlands & Abaddon','Arreat Plateau & Pit of Acheron',
+             'Crystalline Passage & Frozen River','Glacial Trail & Drifter Cavern','Nihlathak\'s Temple & Halls',
+             'Ancient\'s Way & Icy Cellar','Worldstone Keep & Throne of Destruction & Worldstone Chamber']
+};
+
+const IMM_MAP = {
+  'Cold':'ic','Fire':'if','Lightning':'il','Magic':'im','Poison':'ip','Physical':'iph'
+};
+
+// ── STATE ──
+let watchedZones = new Set(JSON.parse(localStorage.getItem('watchedZones') || '[]'));
+let activeFilter = 'All';
+let lastData = null;
+let deferredInstall = null;
+let notifEnabled = typeof Notification !== 'undefined' && Notification.permission === 'granted';
+let searchQuery = '';
+
+function saveWatched() { localStorage.setItem('watchedZones', JSON.stringify([...watchedZones])); }
+
+// ── PWA ──
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault(); deferredInstall = e;
+  document.getElementById('install-banner').style.display = 'flex';
+});
+function installPWA() {
+  if (!deferredInstall) return;
+  deferredInstall.prompt();
+  deferredInstall.userChoice.then(() => { dismissInstall(); deferredInstall = null; });
+}
+function dismissInstall() { document.getElementById('install-banner').style.display = 'none'; }
+
+// ── NOTIFICATIONS ──
+async function ensureNotifPermission() {
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') { notifEnabled = true; return true; }
+  if (Notification.permission === 'denied') {
+    alert('Notifications are blocked. Please enable them in your browser/system settings, then try again.');
+    return false;
+  }
+  const p = await Notification.requestPermission();
+  notifEnabled = p === 'granted';
+  return notifEnabled;
+}
+
+function maybeNotify(name, act) {
+  if (!notifEnabled || !watchedZones.has(name)) return;
+  const key = 'lastNotified_' + name;
+  const lastHour = localStorage.getItem(key);
+  const nowHour = new Date().toISOString().slice(0,13);
+  if (lastHour === nowHour) return;
+  localStorage.setItem(key, nowHour);
+  try {
+    new Notification('💀 Terror Zone Alert!', {
+      body: `${name} (${act}) is now terrorized!`,
+      icon: 'https://d2emu.com/images/android-chrome-512x512.png',
+      tag: 'tz-' + name, renotify: true
+    });
+  } catch(e) {}
+}
+
+// ── DRAWER ──
+function openDrawer() {
+  document.getElementById('overlay').classList.add('open');
+  document.getElementById('drawer').classList.add('open');
+  document.getElementById('notif-btn').classList.add('on');
+  renderDrawer();
+}
+function closeDrawer() {
+  document.getElementById('overlay').classList.remove('open');
+  document.getElementById('drawer').classList.remove('open');
+  document.getElementById('notif-btn').classList.remove('on');
+}
+
+function renderDrawer() {
+  const count = watchedZones.size;
+  const notifOff = !notifEnabled;
+  let html = '';
+
+  // Permission warning
+  if (notifOff) {
+    html += `<div style="background:rgba(204,34,0,.12);border:1px solid rgba(204,34,0,.4);border-radius:8px;padding:10px 14px;margin-bottom:12px;font-size:.82rem;color:#e07060;">
+      ⚠ Notifications not enabled. Tap a zone's 🔔 to enable them.
+    </div>`;
+  }
+
+  // Summary bar
+  if (count > 0) {
+    html += `<div class="watch-summary">
+      <div class="ws-text">🔔 Watching ${count} zone${count>1?'s':''}</div>
+      <button class="ws-clear" onclick="clearAll()">CLEAR ALL</button>
+    </div>`;
+  }
+
+  // Search
+  html += `<input class="zone-search" id="zone-search" placeholder="Search zones…"
+    oninput="onSearch(this.value)" value="${searchQuery}" autocomplete="off">`;
+
+  // Act sections
+  for (const [act, zones] of Object.entries(ALL_ZONES)) {
+    const filtered = zones.filter(z => z.toLowerCase().includes(searchQuery.toLowerCase()));
+    if (!filtered.length) continue;
+    const allWatched = filtered.every(z => watchedZones.has(z));
+    html += `<div class="act-section">
+      <div class="act-section-title">
+        ${act}
+        <span class="act-sel-all" onclick="toggleAct('${act}',${allWatched})">${allWatched?'DESELECT ALL':'SELECT ALL'}</span>
+      </div>
+      <div class="zone-list">`;
+    for (const z of filtered) {
+      const w = watchedZones.has(z);
+      html += `<div class="zone-item${w?' watching':''}" onclick="toggleZone('${z.replace(/'/g,"\\'")}')">
+        <span class="zi-name">${z}</span>
+        <span class="zi-bell">🔔</span>
+      </div>`;
+    }
+    html += `</div></div>`;
+  }
+
+  document.getElementById('drawer-body').innerHTML = html;
+  // Restore scroll/focus
+  const s = document.getElementById('zone-search');
+  if (s && searchQuery) { s.focus(); s.setSelectionRange(s.value.length, s.value.length); }
+}
+
+function onSearch(val) { searchQuery = val; renderDrawer(); }
+
+async function toggleZone(name) {
+  const ok = await ensureNotifPermission();
+  if (!ok) { renderDrawer(); return; }
+  if (watchedZones.has(name)) watchedZones.delete(name);
+  else watchedZones.add(name);
+  saveWatched();
+  renderDrawer();
+  updateCardNotifButtons();
+}
+
+async function toggleAct(act, allWatched) {
+  const ok = await ensureNotifPermission();
+  if (!ok) { renderDrawer(); return; }
+  ALL_ZONES[act].forEach(z => allWatched ? watchedZones.delete(z) : watchedZones.add(z));
+  saveWatched();
+  renderDrawer();
+  updateCardNotifButtons();
+}
+
+function clearAll() {
+  watchedZones.clear(); saveWatched(); renderDrawer(); updateCardNotifButtons();
+}
+
+// ── ACT FILTER ──
+function setFilter(act, btn) {
+  activeFilter = act;
+  document.querySelectorAll('.act-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  applyFilter();
+}
+function applyFilter() {
+  if (!lastData) return;
+  document.getElementById('card-current').classList.toggle('filtered',
+    activeFilter !== 'All' && lastData.curAct !== activeFilter);
+  document.getElementById('card-next').classList.toggle('filtered',
+    activeFilter !== 'All' && lastData.nxtAct !== activeFilter);
+}
+
+// ── TIMER ──
+let timerTick = null;
+function startTimer() {
+  if (timerTick) clearInterval(timerTick);
+  timerTick = setInterval(tick, 1000); tick();
+}
+function tick() {
+  const now = new Date();
+  const left = (30 - now.getMinutes() % 30) * 60 - now.getSeconds();
+  const m = Math.floor(left/60), s = left%60;
+  document.getElementById('countdown').textContent = String(m).padStart(2,'0')+':'+String(s).padStart(2,'0');
+  document.getElementById('prog').style.width = ((30*60-left)/(30*60)*100)+'%';
+}
+
+// ── RENDER CARDS ──
+function immTags(arr) {
+  if (!arr||!arr.length) return '<span class="no-imm">None</span>';
+  return arr.map(i=>`<span class="it ${IMM_MAP[i]||'iph'}">${i}</span>`).join('');
+}
+
+function isWatching(name) { return watchedZones.has(name); }
+
+function renderCard(id, label, icon, name, act, imm) {
+  const w = isWatching(name);
+  document.getElementById(id).innerHTML = `
+    <div class="card-label">${icon} ${label}</div>
+    <div class="zone-name-row">
+      <div class="zone-name">${name||'—'}</div>
+      <span class="act-badge">${act||''}</span>
+      <button class="notify-zone-btn${w?' watching':''}" data-zone="${name}"
+        onclick="quickToggleZone('${(name||'').replace(/'/g,"\\'")}', this)" title="${w?'Stop watching':'Watch this zone'}">🔔</button>
+    </div>
+    <div class="imm-row"><span class="imm-l">Immunities:</span>${immTags(imm)}</div>`;
+}
+
+function updateCardNotifButtons() {
+  document.querySelectorAll('.notify-zone-btn').forEach(btn => {
+    const w = watchedZones.has(btn.dataset.zone);
+    btn.classList.toggle('watching', w);
+  });
+}
+
+async function quickToggleZone(name, btn) {
+  const ok = await ensureNotifPermission();
+  if (!ok) return;
+  if (watchedZones.has(name)) watchedZones.delete(name);
+  else watchedZones.add(name);
+  saveWatched();
+  btn.classList.toggle('watching', watchedZones.has(name));
+}
+
+function showSkeletons() {
+  ['card-current','card-next'].forEach((id,i) => {
+    document.getElementById(id).innerHTML =
+      `<div class="card-label">${i===0?'⚡ Current Terror Zone':'🔮 Next Terror Zone'}</div>
+       <div class="sk n"></div><div class="sk a"></div><div class="sk i"></div>`;
+  });
+}
+
+function setStatus(s, t) {
+  document.getElementById('dot').className = 'dot '+s;
+  document.getElementById('stxt').textContent = t;
+}
+
+// ── FETCH ──
+async function fetchData() {
+  setStatus('loading','Fetching…'); showSkeletons();
+  const urls = [
+    '/api/tz',
+    'https://d2emu.com/api/v1/tz',
+  ];
+  let data = null;
+  for (const url of urls) {
+    try {
+      const r = await fetch(url,{headers:{Accept:'application/json'}});
+      if (!r.ok) continue;
+      const raw = await r.json();
+      data = raw.contents ? JSON.parse(raw.contents) : raw;
+      if (data) break;
+    } catch(e) { continue; }
+  }
+
+  let curName, curAct, curImm, nxtName, nxtAct, nxtImm, demo=false;
+  if (data) {
+    curName = data.zoneName||data.zone||(data.current&&data.current.zone)||'—';
+    curAct  = data.act||(data.current&&data.current.act)||'';
+    curImm  = data.immunities||(data.current&&data.current.immunities)||[];
+    nxtName = data.nextZoneName||data.nextZone||(data.next&&data.next.zone)||'—';
+    nxtAct  = data.nextAct||(data.next&&data.next.act)||'';
+    nxtImm  = data.nextImmunities||(data.next&&data.next.immunities)||[];
+  } else {
+    curName='Chaos Sanctuary';curAct='Act IV';curImm=['Fire','Physical'];
+    nxtName='Arcane Sanctuary';nxtAct='Act II';nxtImm=['Magic','Lightning'];
+    demo=true;
+  }
+
+  lastData = {curName,curAct,curImm,nxtName,nxtAct,nxtImm};
+  renderCard('card-current','Current Terror Zone','⚡',curName,curAct,curImm);
+  renderCard('card-next','Next Terror Zone','🔮',nxtName,nxtAct,nxtImm);
+  applyFilter();
+
+  if (demo) {
+    setStatus('error','Demo data — API unreachable');
+    document.getElementById('card-current').insertAdjacentHTML('beforeend',
+      `<div style="margin-top:8px;font-size:.74rem;color:#cc6644;font-style:italic">
+        ⚠ CORS blocked in preview. <a href="https://d2emu.com/tz" target="_blank" style="color:var(--gold)">Open d2emu.com</a> for live data.</div>`);
+  } else {
+    setStatus('live','Live · '+new Date().toLocaleTimeString());
+    maybeNotify(curName, curAct);
+    maybeNotify(nxtName, nxtAct);
+  }
+
+  startTimer();
+  setTimeout(fetchData, 120_000);
+}
+
+fetchData();
+</script>
+</body>
+</html>
